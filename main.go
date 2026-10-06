@@ -21,6 +21,6 @@ func main() {
 		return
 	}
 
-	fmt.Println("Result body:", string(data))
+	fmt.Println(string(data))
 
 }
