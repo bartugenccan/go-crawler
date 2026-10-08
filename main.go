@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-crawler/internal/fetcher"
 	"go-crawler/internal/parser"
+	"os"
 )
 
 func main() {
@@ -12,14 +13,14 @@ func main() {
 
 	if err != nil {
 		fmt.Println("sayfa çekilemedi:", err)
-		return
+		os.Exit(1)
 	}
 
 	books, skippedBooksCount, err := parser.ParseBooks(data)
 
 	if err != nil {
 		fmt.Println("kitaplar bulunamadı:", err)
-		return
+		os.Exit(1)
 	}
 
 	for index, book := range books {
