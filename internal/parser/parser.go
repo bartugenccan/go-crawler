@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -14,18 +15,26 @@ type Book struct {
 	IsShortened bool
 }
 
-func ParseBooks(data []byte) ([]Book, int, error) {
+type PageResult struct {
+	Booklist         []Book
+	SkippedBookCount int
+	TotalPageCount   int
+}
+
+func ParseBooks(data []byte) (PageResult, error) {
 
 	doc, err := html.Parse(bytes.NewReader(data))
 
 	if err != nil {
-		return nil, 0, fmt.Errorf("html çözümlenemedi: %w", err)
+		return PageResult{}, fmt.Errorf("html çözümlenemedi: %w", err)
 	}
+
+	totalPages := extractTotalPages(doc)
 
 	result := find(doc, "ol", "row")
 
 	if result == nil {
-		return nil, 0, errors.New("html ol.row elementi bulunamadı")
+		return PageResult{}, errors.New("html ol.row elementi bulunamadı")
 	}
 
 	var books []Book
@@ -47,7 +56,7 @@ func ParseBooks(data []byte) ([]Book, int, error) {
 		}
 	}
 
-	return books, skippedBooksCount, nil
+	return PageResult{Booklist: books, SkippedBookCount: skippedBooksCount, TotalPageCount: totalPages}, nil
 }
 
 func getAttr(n *html.Node, key string) string {
@@ -111,6 +120,29 @@ func extractTitle(article *html.Node) (string, bool) {
 
 	return "", false
 
+}
+
+func extractTotalPages(n *html.Node) int {
+	res := find(n, "li", "current")
+
+	if res != nil && res.FirstChild != nil && res.FirstChild.Type == html.TextNode {
+		pageCountText := res.FirstChild.Data
+		words := strings.Fields(pageCountText)
+
+		if len(words) == 0 {
+			return 0
+		}
+		pageCount, err := strconv.Atoi(words[len(words)-1])
+
+		if err != nil {
+			return 0
+		}
+
+		return pageCount
+
+	}
+
+	return 0
 }
 
 func hasSuffixCheck(title, suffix, suffix2, suffix3 string) (string, bool) {

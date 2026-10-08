@@ -8,7 +8,7 @@ import (
 )
 
 const retryCount = 3
-const maxBodySize = 1000
+const maxBodySize = 500 * 1024
 
 var delays = []time.Duration{5 * time.Second, 10 * time.Second}
 
