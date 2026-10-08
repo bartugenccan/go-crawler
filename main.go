@@ -2,31 +2,23 @@ package main
 
 import (
 	"fmt"
+	"go-crawler/internal/fetcher"
 	"go-crawler/internal/parser"
-	"io"
-	"net/http"
 )
 
 func main() {
-	res, err := http.Get("https://books.toscrape.com")
-	if err != nil {
-		fmt.Println("failed:", err)
-		return
-	}
 
-	defer res.Body.Close()
-
-	data, err := io.ReadAll(res.Body)
+	data, err := fetcher.FetchPage("https://books.toscrape.com/")
 
 	if err != nil {
-		fmt.Println("Couldn't read the body.", err)
+		fmt.Println("sayfa çekilemedi:", err)
 		return
 	}
 
 	books, skippedBooksCount, err := parser.ParseBooks(data)
 
 	if err != nil {
-		fmt.Println("Kitaplar bulunamadı:", err)
+		fmt.Println("kitaplar bulunamadı:", err)
 		return
 	}
 
