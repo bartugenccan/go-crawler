@@ -11,7 +11,7 @@ func main() {
 	res, err := crawler.Crawl("https://books.toscrape.com/")
 
 	if err != nil {
-		fmt.Println("sayfa sayısı öğrenilemedi:", err)
+		fmt.Println("tarama başarısız", err)
 		os.Exit(1)
 	}
 
