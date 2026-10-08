@@ -8,6 +8,7 @@ import (
 )
 
 const retryCount = 3
+const maxBodySize = 1000
 
 var delays = []time.Duration{5 * time.Second, 10 * time.Second}
 
@@ -70,10 +71,19 @@ func fetchOnce(url string) ([]byte, int, error) {
 		return nil, res.StatusCode, fmt.Errorf("%s isteği %s statusu ile başarısız", url, res.Status)
 	}
 
-	data, err := io.ReadAll(res.Body)
+	if res.ContentLength > maxBodySize {
+		return nil, res.StatusCode, fmt.Errorf("içerik fazla büyük: %s, %d", url, maxBodySize)
+	}
+
+	data, err := io.ReadAll(io.LimitReader(res.Body, maxBodySize+1))
 
 	if err != nil {
 		return nil, res.StatusCode, fmt.Errorf("%s verisi okunamadı: %w", url, err)
+	}
+
+	if len(data) > maxBodySize {
+		return nil, res.StatusCode, fmt.Errorf("data maximum veriyi aşıyor fazla büyük: %s, %d", url, maxBodySize)
+
 	}
 
 	return data, res.StatusCode, nil
